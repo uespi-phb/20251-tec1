@@ -23,5 +23,8 @@
     "**/node_modules": true,
     "**/.extra": false,
     "**/.git": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
