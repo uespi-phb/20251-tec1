@@ -1,0 +1,27 @@
+
+sequenceDiagram
+    title User Authentication
+
+    participant U as User
+    participant AC as Auth Controller
+    participant AS as Auth Service
+    participant UR as User Repository
+    participant TS as Token Service
+
+    U->>AC: POST /login {username, password}
+    AC->>AS: authenticate(username, password)
+    AS->>UR: findUserByUsername(username)
+    UR-->>AS: user ou null
+    alt User Found
+        AS->>AS: validatePassword(password, user.passwordHash)
+        alt Valid Password
+            AS->>TS: generateToken(user)
+            TS-->>AS: token
+            AS-->>AC: token
+        else Invalid Password
+            AS-->>AC: error("Invalid credentials")
+        end
+    else Usuário não encontrado
+        AS-->>AC: error("User not found")
+    end
+    AC-->>U: Response {token} ou error
