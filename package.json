@@ -22,10 +22,12 @@
     "rimraf": "^4"
   },
   "dependencies": {
-    "dotenv": "^16"
+    "dotenv": "^16",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/jest": "^29",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
