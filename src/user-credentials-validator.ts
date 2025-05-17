@@ -1,3 +1,3 @@
-export interface UserAuth {
+export interface UserCredentialsValidator {
   signIn(email: string, password: string): Promise<boolean>
 }

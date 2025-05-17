@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: ru_pgsql
+    restart: "no"
+    environment:
+      POSTGRES_USER: ru
+      POSTGRES_PASSWORD: ru
+      POSTGRES_DB: ru
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - ru_network
+
+networks:
+  ru_network:

@@ -6,7 +6,7 @@ import { LoadUser } from '@/load-user'
 import { SaveUser } from '@/save-user'
 import { TokenEncrypter } from '@/token-handler'
 import { User } from '@/user'
-import { UserAuth } from '@/user-auth'
+import { UserCredentialsValidator } from '@/user-credentials-validator'
 
 describe('AuthenticationService', () => {
   let userId: number
@@ -15,7 +15,7 @@ describe('AuthenticationService', () => {
   let password: string
   let token: string
   let user: User
-  let userAuth: MockProxy<UserAuth>
+  let userAuth: MockProxy<UserCredentialsValidator>
   let loadUser: MockProxy<LoadUser>
   let saveUser: MockProxy<SaveUser>
   let tokenEncrypter: MockProxy<TokenEncrypter>
@@ -28,7 +28,7 @@ describe('AuthenticationService', () => {
     password = 'any_password'
     token = 'any_token'
     user = new User(userId, userName, email)
-    userAuth = mock<UserAuth>()
+    userAuth = mock<UserCredentialsValidator>()
     userAuth.signIn.mockResolvedValue(true)
     loadUser = mock<LoadUser>()
     loadUser.loadByEmail.mockResolvedValue(user)

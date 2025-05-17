@@ -22,8 +22,8 @@
     "rimraf": "^4"
   },
   "dependencies": {
-    "dotenv": "^16",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "pg-promise": "^11.13.0"
   },
   "devDependencies": {
     "@types/jest": "^29",

@@ -3,7 +3,7 @@ import { LoadUser } from './load-user'
 import { SaveUser } from './save-user'
 import { Service } from './service'
 import { TokenEncrypter } from './token-handler'
-import { UserAuth } from './user-auth'
+import { UserCredentialsValidator } from './user-credentials-validator'
 
 export type AuthenticationInput = {
   email: string
@@ -26,7 +26,7 @@ export class AuthenticationService implements Service<AuthenticationInput, Authe
   // }
 
   constructor(
-    private readonly userAuth: UserAuth,
+    private readonly userCredentialsValidator: UserCredentialsValidator,
     private readonly loadUser: LoadUser,
     private readonly saveUser: SaveUser,
     private readonly tokenEncrypter: TokenEncrypter,
@@ -34,7 +34,7 @@ export class AuthenticationService implements Service<AuthenticationInput, Authe
 
   async execute(input: AuthenticationInput): Promise<AuthenticationOutput> {
     try {
-      const validCredentials = await this.userAuth.signIn(input.email, input.password)
+      const validCredentials = await this.userCredentialsValidator.signIn(input.email, input.password)
       if (!validCredentials) throw new InvalidCredentialsError()
       const user = await this.loadUser.loadByEmail(input.email)
       if (user === undefined) throw new UserNotFoundError()
