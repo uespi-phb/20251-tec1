@@ -1,4 +1,5 @@
 
+create schema test;
 create schema ru;
 
 create table ru.user (
@@ -8,4 +9,3 @@ create table ru.user (
    password text
 );
 
--- insert into ru.user(id,email,name,password) values (1,'john.doe@email.com','John Doe','any_password');
