@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "lint:clear": "rm -f .eslintcache",
     "lint:fix": "yarn run lint --fix",
-    "test": "jest --passWithNoTests --no-cache --runInBand",
+    "test": "jest --passWithNoTests --no-cache --runInBand --detectOpenHandles",
     "test:watch": "yarn run test --watch --onlyChanged",
     "test:staged": "lint-staged",
     "test:coverage": "yarn run test --config jest.coverage.config.ts --coverage"
@@ -23,8 +23,7 @@
   },
   "dependencies": {
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.16.0",
-    "pg-promise": "^11.13.0"
+    "pg": "^8.16.0"
   },
   "devDependencies": {
     "@types/jest": "^29",

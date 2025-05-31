@@ -1,5 +1,4 @@
 
-create schema test;
 create schema ru;
 
 create table ru.user (
@@ -8,4 +7,3 @@ create table ru.user (
    name text not null,
    password text
 );
-

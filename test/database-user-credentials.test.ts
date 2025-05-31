@@ -1,74 +1,112 @@
 import { mock } from 'jest-mock-extended'
 
-import { DatabaseConnectionError, DatabaseUnexpectedError, DatabaseUserCredentials } from '@/database-user-credentials'
-import { PgPromiseClient } from '@/pg-promise-client'
+import { DatabaseClient, DatabaseConfig } from '@/database-client'
+import { DatabaseUserCredentials, DatabaseUserCredentialsError } from '@/database-user-credentials'
+import { PgClient } from '@/pg-client'
 
 describe(DatabaseUserCredentials.name, () => {
-  let email: string
-  let password: string
-  let pgpClient: PgPromiseClient
+  type UserRecord = {
+    id: number
+    email: string
+    name: string
+    password: string
+  }
+  let user: UserRecord
+  let dbConfig: DatabaseConfig
+  let dbClient: DatabaseClient
   let sut: DatabaseUserCredentials
 
-  beforeEach(async () => {
-    email = 'john.doe@email.com'
-    password = 'any_password'
-    pgpClient = new PgPromiseClient()
-    await pgpClient.connect()
-    await pgpClient.none('insert into ru.user(id,email,name,password) values ($1,$2,$3,$4);', [
-      1,
-      'john.doe@email.com',
-      'John Doe',
-      'any_password',
-    ])
-
-    sut = new DatabaseUserCredentials(pgpClient)
+  beforeAll(async () => {
+    user = {
+      id: 1,
+      email: 'john.doe@email.com',
+      name: 'John Doe',
+      password: 'any_password',
+    }
+    dbConfig = {
+      host: 'localhost',
+      port: 5432,
+      user: 'ru',
+      password: 'ru',
+      database: 'ru',
+      schema: 'ru',
+      maxConnections: 1,
+      connectionTimeoutInMs: 2000,
+      idleTimeoutInMs: 1000,
+    }
+    dbClient = new PgClient(dbConfig)
+    await dbClient.connect()
   })
 
-  afterEach(async () => {
-    await pgpClient.none('delete from ru.user where email=$1', [email])
+  beforeEach(() => {
+    sut = new DatabaseUserCredentials(dbClient)
   })
+
+  afterAll(async () => {
+    try {
+      await dbClient.disconnect()
+    } finally {
+      await dbClient.release()
+    }
+  })
+
+  const insertUser = async (user: UserRecord): Promise<void> => {
+    const sql = 'insert into ru.user(id,name,email,password) values($1,$2,$3,$4)'
+    await dbClient.queryNone(sql, [user.id, user.name, user.email, user.password])
+  }
+
+  const deleteUser = async (userId: number): Promise<void> => {
+    const sql = 'delete from ru.user where id=$1'
+    await dbClient.queryNone(sql, [userId])
+  }
 
   it('Should validate user/password against database', async () => {
-    const result = await sut.signIn(email, password)
+    await insertUser(user)
+
+    const result = await sut.signIn(user.email, user.password)
 
     expect(result).toBe(true)
+
+    await deleteUser(user.id)
+    const data = await dbClient.queryAny('select * from ru.user')
+    expect(data).toHaveLength(0)
   })
 
   it('Should not validate invalid user or password against database', async () => {
     let result: boolean
 
-    const wrongEmail = `wrong.${email}`
-    result = await sut.signIn(wrongEmail, password)
+    const wrongEmail = `wrong.${user.email}`
+    result = await sut.signIn(wrongEmail, user.password)
     expect(result).toBe(false)
 
-    const wrongPassword = `wrong_${password}`
-    result = await sut.signIn(email, wrongPassword)
+    const wrongPassword = `wrong_${user.password}`
+    result = await sut.signIn(user.email, wrongPassword)
     expect(result).toBe(false)
 
     result = await sut.signIn(wrongEmail, wrongPassword)
     expect(result).toBe(false)
   })
 
-  it('Should thrown DatabaseConnectionError if is not connected to database', async () => {
-    pgpClient.disconnect()
+  it('Should thrown DatabaseUserCredentialsError if is not connected to database', async () => {
+    dbClient.disconnect()
 
-    const promise = sut.signIn(email, password)
+    const promise = sut.signIn(user.email, user.password)
 
-    await expect(promise).rejects.toThrow(DatabaseConnectionError)
+    await expect(promise).rejects.toThrow(DatabaseUserCredentialsError)
 
-    pgpClient.connect()
+    dbClient.connect()
   })
 
-  it('Should thrown DatabaseUnexpectedError if database client throws', async () => {
-    const error = new Error('any_pg_promise_client_error')
-    const pgpClient = mock<PgPromiseClient>()
-    pgpClient.oneOrNone.mockImplementation(() => {
+  it('Should thrown DatabaseUserCredentialsError if database client throws', async () => {
+    const error = new Error('any_pg_client_error')
+    const pgpClient = mock<PgClient>()
+    pgpClient.queryOneOrNone.mockImplementation(() => {
       throw error
     })
     const sut = new DatabaseUserCredentials(pgpClient)
 
-    const promise = sut.signIn(email, password)
+    const promise = sut.signIn(user.email, user.password)
 
-    await expect(promise).rejects.toThrow(DatabaseUnexpectedError)
+    await expect(promise).rejects.toThrow(DatabaseUserCredentialsError)
   })
 })
