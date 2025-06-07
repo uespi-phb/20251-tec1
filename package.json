@@ -22,10 +22,12 @@
     "rimraf": "^4"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/jest": "^29",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22",

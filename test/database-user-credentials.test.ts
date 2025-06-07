@@ -9,8 +9,8 @@ describe(DatabaseUserCredentials.name, () => {
     id: number
     email: string
     name: string
-    password: string
   }
+  let plainPassword: string
   let user: UserRecord
   let dbConfig: DatabaseConfig
   let dbClient: DatabaseClient
@@ -21,8 +21,8 @@ describe(DatabaseUserCredentials.name, () => {
       id: 1,
       email: 'john.doe@email.com',
       name: 'John Doe',
-      password: 'any_password',
     }
+    plainPassword = 'plain_password'
     dbConfig = {
       host: 'localhost',
       port: 5432,
@@ -34,6 +34,7 @@ describe(DatabaseUserCredentials.name, () => {
       connectionTimeoutInMs: 2000,
       idleTimeoutInMs: 1000,
     }
+
     dbClient = new PgClient(dbConfig)
     await dbClient.connect()
   })
@@ -52,7 +53,7 @@ describe(DatabaseUserCredentials.name, () => {
 
   const insertUser = async (user: UserRecord): Promise<void> => {
     const sql = 'insert into ru.user(id,name,email,password) values($1,$2,$3,$4)'
-    await dbClient.queryNone(sql, [user.id, user.name, user.email, user.password])
+    await dbClient.queryNone(sql, [user.id, user.name, user.email, plainPassword])
   }
 
   const deleteUser = async (userId: number): Promise<void> => {
@@ -63,8 +64,7 @@ describe(DatabaseUserCredentials.name, () => {
   it('Should validate user/password against database', async () => {
     await insertUser(user)
 
-    const result = await sut.signIn(user.email, user.password)
-
+    const result = await sut.signIn(user.email, plainPassword)
     expect(result).toBe(true)
 
     await deleteUser(user.id)
@@ -76,10 +76,10 @@ describe(DatabaseUserCredentials.name, () => {
     let result: boolean
 
     const wrongEmail = `wrong.${user.email}`
-    result = await sut.signIn(wrongEmail, user.password)
+    result = await sut.signIn(wrongEmail, plainPassword)
     expect(result).toBe(false)
 
-    const wrongPassword = `wrong_${user.password}`
+    const wrongPassword = `wrong_${plainPassword}`
     result = await sut.signIn(user.email, wrongPassword)
     expect(result).toBe(false)
 
@@ -90,7 +90,7 @@ describe(DatabaseUserCredentials.name, () => {
   it('Should thrown DatabaseUserCredentialsError if is not connected to database', async () => {
     dbClient.disconnect()
 
-    const promise = sut.signIn(user.email, user.password)
+    const promise = sut.signIn(user.email, plainPassword)
 
     await expect(promise).rejects.toThrow(DatabaseUserCredentialsError)
 
@@ -105,7 +105,7 @@ describe(DatabaseUserCredentials.name, () => {
     })
     const sut = new DatabaseUserCredentials(pgpClient)
 
-    const promise = sut.signIn(user.email, user.password)
+    const promise = sut.signIn(user.email, plainPassword)
 
     await expect(promise).rejects.toThrow(DatabaseUserCredentialsError)
   })

@@ -8,7 +8,8 @@ export class DatabaseUserCredentials implements UserCredentialsValidator {
     const sql = 'select password from ru.user where email=$1'
     try {
       const result = await this.dbClient.queryOneOrNone<{ password: string }>(sql, [email])
-      return result !== null ? result.password === password : false
+      if (result === null) return false
+      return result.password === password
     } catch (error) {
       throw new DatabaseUserCredentialsError((error as Error).message)
     }
